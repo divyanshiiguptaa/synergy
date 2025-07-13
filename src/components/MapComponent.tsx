@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { Layers, Info } from 'lucide-react';
+import { Layers, Info, Plus, Minus } from 'lucide-react';
 import { loadDatasets } from '../utils/data-loader';
 import { findSpatialMatches, type SpatialMatch } from '../utils/spatial';
 import type { LayerConfig } from '../configs/layerConfig';
@@ -506,6 +506,19 @@ function MapComponent({
 
   const summaryStats = getSummaryStats();
 
+  // Zoom control functions
+  const handleZoomIn = useCallback(() => {
+    if (map.current) {
+      map.current.zoomIn();
+    }
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    if (map.current) {
+      map.current.zoomOut();
+    }
+  }, []);
+
   useEffect(() => {
     if (!map.current || !selectedMatch) return;
 
@@ -591,6 +604,26 @@ function MapComponent({
           </div>
         </div>
       )}
+
+      {/* Zoom Controls */}
+      <div className="absolute top-4 right-4 z-30 flex flex-col bg-white rounded-lg shadow-lg border border-gray-200">
+        <button
+          onClick={handleZoomIn}
+          className="p-2 hover:bg-gray-50 border-b border-gray-200 rounded-t-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          title="Zoom In"
+          aria-label="Zoom In"
+        >
+          <Plus className="w-4 h-4 text-gray-600" />
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="p-2 hover:bg-gray-50 rounded-b-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          title="Zoom Out"
+          aria-label="Zoom Out"
+        >
+          <Minus className="w-4 h-4 text-gray-600" />
+        </button>
+      </div>
 
       {/* Layer Controls */}
       <div className="absolute top-4 left-4 z-30 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-0">
