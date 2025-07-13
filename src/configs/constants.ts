@@ -212,15 +212,7 @@ export const STATUS_OPTIONS = [
   'On Hold'
 ] as const;
 
-// ============================================================================
-// THEME CONSTANTS
-// ============================================================================
 
-export const THEME_CONSTANTS = {
-  STORAGE_KEY: 'theme',
-  DEFAULT_THEME: 'system' as const,
-  THEMES: ['light', 'dark', 'system'] as const
-} as const;
 
 // ============================================================================
 // EXPORT CONSTANTS

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MapPin, Info, Settings, Download, ChevronDown, FileText, Users, BarChart3, Funnel, Sun, Moon, Monitor, Check } from 'lucide-react';
+import { MapPin, Info, Download, ChevronDown, FileText, Users, BarChart3, Funnel } from 'lucide-react';
 import Button from './Button';
 import SearchBar from './SearchBar';
 import { exportToCSV, exportContactList, exportInfrastructureSummary } from '../utils/export';
@@ -16,8 +16,6 @@ export interface TopBarProps {
   layerConfig?: LayerConfig;
   onInfoClick?: () => void;
   onFiltersClick?: () => void;
-  theme?: 'light' | 'dark' | 'system';
-  onThemeChange?: (theme: 'light' | 'dark' | 'system') => void;
   className?: string;
 }
 
@@ -31,25 +29,18 @@ function TopBar({
   layerConfig,
   onInfoClick,
   onFiltersClick,
-  theme = 'system',
-  onThemeChange,
   className = ""
 }: TopBarProps) {
   // Local state for search input
   const [search, setSearch] = useState('');
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
-  const [showThemeDropdown, setShowThemeDropdown] = useState(false);
-  const settingsDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target as Node)) {
         setShowExportDropdown(false);
-      }
-      if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target as Node)) {
-        setShowThemeDropdown(false);
       }
     }
 
@@ -191,57 +182,6 @@ function TopBar({
             )}
           </div>
         )}
-        {/* Settings button with theme dropdown */}
-        <div className="relative" ref={settingsDropdownRef}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowThemeDropdown((v) => !v)}
-            className="flex items-center gap-1 px-1 py-0.5"
-            title="Settings"
-            aria-label="Settings"
-          >
-            <Settings className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline text-xs">Settings</span>
-            <ChevronDown className="w-3 h-3" />
-          </Button>
-          {showThemeDropdown && (
-            <div
-              className="absolute right-0 top-full mt-2 min-w-[180px] bg-white border border-gray-200 rounded-xl shadow-2xl z-[100] py-2"
-              style={{ marginTop: '0.75rem' }}
-              role="menu"
-              aria-label="Theme options"
-            >
-              <button
-                onClick={() => { onThemeChange && onThemeChange('light'); setShowThemeDropdown(false); }}
-                className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-800 hover:bg-blue-50 focus:bg-blue-100 rounded-lg transition-colors ${theme === 'light' ? 'font-semibold text-blue-700' : ''}`}
-                role="menuitem"
-              >
-                <Sun className="w-4 h-4 text-yellow-500" />
-                Light
-                {theme === 'light' && <Check className="w-4 h-4 text-blue-600 ml-auto" />}
-              </button>
-              <button
-                onClick={() => { onThemeChange && onThemeChange('dark'); setShowThemeDropdown(false); }}
-                className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-800 hover:bg-blue-50 focus:bg-blue-100 rounded-lg transition-colors ${theme === 'dark' ? 'font-semibold text-blue-700' : ''}`}
-                role="menuitem"
-              >
-                <Moon className="w-4 h-4 text-gray-800" />
-                Dark
-                {theme === 'dark' && <Check className="w-4 h-4 text-blue-600 ml-auto" />}
-              </button>
-              <button
-                onClick={() => { onThemeChange && onThemeChange('system'); setShowThemeDropdown(false); }}
-                className={`w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-800 hover:bg-blue-50 focus:bg-blue-100 rounded-lg transition-colors ${theme === 'system' ? 'font-semibold text-blue-700' : ''}`}
-                role="menuitem"
-              >
-                <Monitor className="w-4 h-4 text-blue-500" />
-                System
-                {theme === 'system' && <Check className="w-4 h-4 text-blue-600 ml-auto" />}
-              </button>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

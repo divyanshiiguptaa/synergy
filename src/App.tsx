@@ -13,7 +13,7 @@ import Collapsible from "./components/Collapsible";
 import { Layers } from "lucide-react";
 import React from "react";
 import { getMapboxToken, validateEnvironment } from "./configs/environment";
-import { STATUS_OPTIONS, THEME_CONSTANTS } from "./configs/constants";
+import { STATUS_OPTIONS } from "./configs/constants";
 
 
 function App() {
@@ -56,46 +56,6 @@ function App() {
     }));
   };
 
-  // Theme state
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
-    const stored = localStorage.getItem(THEME_CONSTANTS.STORAGE_KEY);
-    if (THEME_CONSTANTS.THEMES.includes(stored as any)) return stored as 'light' | 'dark' | 'system';
-    return THEME_CONSTANTS.DEFAULT_THEME;
-  });
-
-  // Apply theme to document
-  useEffect(() => {
-    function applyTheme(t: 'light' | 'dark' | 'system') {
-      if (t === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else if (t === 'light') {
-        document.documentElement.classList.remove('dark');
-      } else {
-        // system
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    }
-    applyTheme(theme);
-    localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, theme);
-    if (theme === 'system') {
-      const listener = (e: MediaQueryListEvent) => {
-        if (e.matches) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      };
-      const mql = window.matchMedia('(prefers-color-scheme: dark)');
-      mql.addEventListener('change', listener);
-      return () => mql.removeEventListener('change', listener);
-    }
-  }, [theme]);
-
-
   // Handlers for MapComponent
   const handleResultsUpdate = useCallback((results: SpatialMatch[]) => {
     setSpatialResults(results);
@@ -130,8 +90,6 @@ function App() {
         layerConfig={layerConfig}
         onInfoClick={() => setShowInfo(true)}
         onFiltersClick={() => setShowFilters(true)}
-        theme={theme}
-        onThemeChange={setTheme}
       />
       
       {/* Main Content */}
@@ -249,7 +207,7 @@ function App() {
                 value={dateRange.start}
                 onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
               />
-              <span className="text-gray-500">to</span>
+              <span className="text-xs text-gray-500">to</span>
               <input
                 type="date"
                 className="border border-gray-300 rounded px-2 py-1 text-sm"
@@ -265,26 +223,33 @@ function App() {
               <input
                 type="number"
                 placeholder="Min"
-                className="border border-gray-300 rounded px-2 py-1 text-sm w-24"
+                className="border border-gray-300 rounded px-2 py-1 text-sm w-20"
                 value={costRange.min}
                 onChange={e => setCostRange({ ...costRange, min: e.target.value })}
               />
-              <span className="text-gray-500">to</span>
+              <span className="text-xs text-gray-500">to</span>
               <input
                 type="number"
                 placeholder="Max"
-                className="border border-gray-300 rounded px-2 py-1 text-sm w-24"
+                className="border border-gray-300 rounded px-2 py-1 text-sm w-20"
                 value={costRange.max}
                 onChange={e => setCostRange({ ...costRange, max: e.target.value })}
               />
             </div>
           </div>
-                          <div className="flex justify-end gap-2 mt-6">
-                <Button variant="ghost" size="sm" onClick={clearFilters}>Clear</Button>
-                <Button variant="primary" size="sm" onClick={() => setShowFilters(false)}>Apply</Button>
-              </div>
-            </PopupPanel>
-          )}
+          {/* Clear Filters Button */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearFilters}
+              className="text-xs"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </PopupPanel>
+      )}
 
       {/* Info Modal */}
       <InfoModal
@@ -292,7 +257,6 @@ function App() {
         onClose={() => setShowInfo(false)}
         title="How to Use This Map"
       />
-
     </div>
   );
 }
