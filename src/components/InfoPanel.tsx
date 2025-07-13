@@ -1,4 +1,3 @@
-import React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { MapPin, Calendar, Building, Zap, DollarSign, User } from 'lucide-react';
 import type { SpatialMatch } from '../utils/spatial';
@@ -97,7 +96,7 @@ const MatchesSection = ({ matchInfo, layerConfig }: MatchesSectionProps) => (
                   .map(([group, count]) => (
                     <div key={group} className="flex justify-between items-center text-xs">
                       <span className="text-gray-600 truncate pr-2">{group}</span>
-                      <span className="font-medium text-gray-900 min-w-[1.5rem] text-right">{count}</span>
+                      <span className="font-medium text-gray-900 min-w-[1.5rem] text-right">{String(count)}</span>
                     </div>
                   ))}
               </div>

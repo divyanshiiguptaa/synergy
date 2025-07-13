@@ -84,10 +84,9 @@ const ModalOverlay: React.FC<ModalOverlayProps> = ({ children, onClose }) => (
 
 interface ModalContentProps {
   children: React.ReactNode;
-  onClose: (e: React.MouseEvent) => void;
 }
 
-const ModalContent: React.FC<ModalContentProps> = ({ children, onClose }) => (
+const ModalContent: React.FC<ModalContentProps> = ({ children }) => (
   <div 
     className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col"
     onClick={(e) => e.stopPropagation()}
@@ -182,11 +181,10 @@ const InfoModal: React.FC<InfoModalProps> = ({
   if (!isOpen) return null;
 
   const handleOverlayClick = () => onClose();
-  const handleContentClick = (e: React.MouseEvent) => e.stopPropagation();
 
   return (
     <ModalOverlay onClose={handleOverlayClick}>
-      <ModalContent onClose={handleContentClick}>
+      <ModalContent>
         <ModalHeader title={title} onClose={onClose} />
         
         <ModalBody>

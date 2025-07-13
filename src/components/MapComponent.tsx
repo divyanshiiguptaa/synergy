@@ -4,7 +4,7 @@ import { Layers, Info } from 'lucide-react';
 import { loadDatasets } from '../utils/data-loader';
 import { findSpatialMatches, type SpatialMatch } from '../utils/spatial';
 import type { LayerConfig } from '../configs/layerConfig';
-import { MAP_CONSTANTS, COLORS, LAYER_IDS, ERROR_MESSAGES, getClusterRadius, getTargetLayerKey, getMatchLayerKey, getReferenceLayerId, getTargetLayerId, getSourceId } from '../configs/constants';
+import { MAP_CONSTANTS, COLORS, ERROR_MESSAGES, getTargetLayerKey, getMatchLayerKey, getReferenceLayerId, getTargetLayerId, getSourceId } from '../configs/constants';
 import Collapsible from './Collapsible';
 import ErrorIcon from '../icons/error-icon';
 import Card from './Card';

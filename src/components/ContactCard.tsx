@@ -1,5 +1,5 @@
 import { User, Phone, Mail, Building } from 'lucide-react';
-import type { ReactNode, MouseEventHandler, ElementType } from 'react';
+import type { ReactNode, ElementType } from 'react';
 
 interface ContactCardProps {
   name: string;
