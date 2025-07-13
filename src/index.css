@@ -7,7 +7,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: light;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
@@ -56,6 +56,61 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Prevent Chrome's dark mode from affecting form elements */
+input, textarea, select {
+  color-scheme: light;
+  background-color: white !important;
+  color: #213547 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6b7280 !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Override any dark mode styles for search inputs specifically */
+input[type="search"] {
+  background-color: white !important;
+  color: #213547 !important;
+}
+
+/* Ensure dropdowns and other form elements stay light */
+select option {
+  background-color: white !important;
+  color: #213547 !important;
+}
+
+/* Override Chrome's dark mode for search bars specifically */
+input[type="text"], input[type="search"] {
+  color-scheme: light !important;
+  background-color: white !important;
+  color: #213547 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+/* Ensure search bar placeholders are visible */
+input[type="text"]::placeholder, input[type="search"]::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Override any dark mode styles for form elements in dark mode */
+.dark input, .dark textarea, .dark select {
+  color-scheme: light !important;
+  background-color: white !important;
+  color: #213547 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #6b7280 !important;
 }
 @media (prefers-color-scheme: light) {
   :root {
