@@ -34,15 +34,17 @@ export interface LayerConfig {
   target: TargetLayer[];
 }
 
+import { COLORS, DATA_CONSTANTS, MAP_CONSTANTS } from './constants';
+
 export const defaultLayerConfig: LayerConfig = {
   reference: {
     name: 'CIP Projects',
-    file: '/data/cip_projects.json',
+    file: DATA_CONSTANTS.PATHS.CIP_PROJECTS,
     geometryType: 'Polygon',
     filterFields: ['department', 'start_date', 'end_date'],
-    color: '#3B82F6',
-    fillColor: '#3B82F6',
-    fillOpacity: 0.1,
+    color: COLORS.PRIMARY.BLUE,
+    fillColor: COLORS.PRIMARY.BLUE,
+    fillOpacity: MAP_CONSTANTS.DEFAULT_FILL_OPACITY,
     displayFields: {
       title: 'ProjectTitle',
       department: 'ProgramName',
@@ -54,11 +56,11 @@ export const defaultLayerConfig: LayerConfig = {
   },
   target: [{
     name: 'EV Chargers',
-    file: '/data/ev_chargers.json',
+    file: DATA_CONSTANTS.PATHS.EV_CHARGERS,
     geometryType: 'Point',
     groupByFields: ['type', 'status'],
-    color: '#10B981',
-    size: 6,
+    color: COLORS.PRIMARY.GREEN,
+    size: MAP_CONSTANTS.POINT_SIZE,
     displayFields: {
       type: 'type',
       status: 'status'

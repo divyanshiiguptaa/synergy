@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import CloseIcon from '../icons/close-icon';
+import { UI_CONSTANTS } from '../configs/constants';
 
 export interface PopupPanelProps {
   title: React.ReactNode;
@@ -17,11 +18,11 @@ function PopupPanel({ title, onClose, children, position = 'right' }: PopupPanel
   // Set initial position to right side
   useEffect(() => {
     const setRightPosition = () => {
-      const panelWidth = 384; // w-96 = 24rem = 384px
-      const rightMargin = 16;
+      const panelWidth = UI_CONSTANTS.PANEL.WIDTH;
+      const rightMargin = UI_CONSTANTS.PANEL.MARGIN;
       setPanelPosition({
         x: window.innerWidth - panelWidth - rightMargin,
-        y: 16
+        y: UI_CONSTANTS.PANEL.MARGIN
       });
     };
 
@@ -58,8 +59,8 @@ function PopupPanel({ title, onClose, children, position = 'right' }: PopupPanel
     const newY = e.clientY - dragOffset.y;
 
     // Constrain to viewport bounds
-    const maxX = window.innerWidth - (panelRef.current?.offsetWidth || 384);
-    const maxY = window.innerHeight - (panelRef.current?.offsetHeight || 200);
+    const maxX = window.innerWidth - (panelRef.current?.offsetWidth || UI_CONSTANTS.PANEL.WIDTH);
+    const maxY = window.innerHeight - (panelRef.current?.offsetHeight || UI_CONSTANTS.PANEL.MIN_HEIGHT);
 
     setPanelPosition({
       x: Math.max(0, Math.min(newX, maxX)),

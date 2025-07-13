@@ -1,5 +1,6 @@
 import type { SpatialMatch } from './spatial';
 import type { LayerConfig } from '../configs/layerConfig';
+import { EXPORT_CONSTANTS, DATA_CONSTANTS, getTodayDate } from '../configs/constants';
 
 export interface ExportOptions {
   includeContactInfo?: boolean;
@@ -31,13 +32,13 @@ export function exportToCSV(
   const headers = [
     'Project Title',
     'Project Number',
-    'Agency/Department',
+    'Department',
     'Start Date',
     'End Date'
   ];
 
   if (includeCostData) {
-    headers.push('Construction Cost ($)');
+    headers.push('Construction Cost');
   }
 
   if (includeContactInfo) {
@@ -47,7 +48,7 @@ export function exportToCSV(
   }
 
   if (includeInfrastructureImpact) {
-    headers.push('Total Infrastructure Items Affected');
+    headers.push('Total Matches');
     headers.push('Infrastructure Breakdown');
   }
 
@@ -59,21 +60,21 @@ export function exportToCSV(
     const properties = referenceFeature.properties;
 
     const row = [
-      properties?.ProjectTitle || 'Untitled Project',
-      properties?.ProjectNumber || 'N/A',
-      properties?.ProgramName || 'Unknown',
-      properties?.StartDate ? new Date(properties.StartDate).toLocaleDateString() : 'N/A',
-      properties?.EndDate ? new Date(properties.EndDate).toLocaleDateString() : 'N/A'
+      properties?.ProjectTitle || DATA_CONSTANTS.DEFAULTS.UNTITLED_PROJECT,
+      properties?.ProjectNumber || DATA_CONSTANTS.DEFAULTS.N_A,
+      properties?.ProgramName || DATA_CONSTANTS.DEFAULTS.UNKNOWN,
+      properties?.StartDate ? new Date(properties.StartDate).toLocaleDateString() : DATA_CONSTANTS.DEFAULTS.N_A,
+      properties?.EndDate ? new Date(properties.EndDate).toLocaleDateString() : DATA_CONSTANTS.DEFAULTS.N_A
     ];
 
     if (includeCostData) {
-      row.push(properties?.ConstructionCost ? `$${properties.ConstructionCost.toLocaleString()}` : 'N/A');
+      row.push(properties?.ConstructionCost ? `$${properties.ConstructionCost.toLocaleString()}` : DATA_CONSTANTS.DEFAULTS.N_A);
     }
 
     if (includeContactInfo) {
-      row.push(properties?.PM_Name || 'N/A');
-      row.push(properties?.PM_Phone || 'N/A');
-      row.push(properties?.PM_EMail || 'N/A');
+      row.push(properties?.PM_Name || DATA_CONSTANTS.DEFAULTS.N_A);
+      row.push(properties?.PM_Phone || DATA_CONSTANTS.DEFAULTS.N_A);
+      row.push(properties?.PM_EMail || DATA_CONSTANTS.DEFAULTS.N_A);
     }
 
     if (includeInfrastructureImpact) {
@@ -109,11 +110,11 @@ export function exportToCSV(
     .join('\n');
 
   // Create and download file
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvContent], { type: EXPORT_CONSTANTS.CSV.MIME_TYPE });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
-  link.setAttribute('download', `project-analysis-${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute('download', EXPORT_CONSTANTS.FILENAMES.SPATIAL_RESULTS(getTodayDate()));
   link.style.visibility = 'hidden';
   document.body.appendChild(link);
   link.click();
@@ -127,14 +128,7 @@ export function exportContactList(spatialResults: SpatialMatch[]): void {
   const csvData: string[][] = [];
   
   // Headers
-  csvData.push([
-    'Project Manager',
-    'Phone',
-    'Email',
-    'Department',
-    'Project Title',
-    'Project Number'
-  ]);
+  csvData.push([...EXPORT_CONSTANTS.HEADERS.CONTACT_LIST]);
 
   // Filter unique project managers
   const uniqueManagers = new Map();
@@ -148,11 +142,11 @@ export function exportContactList(spatialResults: SpatialMatch[]): void {
       if (!uniqueManagers.has(key)) {
         uniqueManagers.set(key, {
           name: properties.PM_Name,
-          phone: properties.PM_Phone || 'N/A',
+          phone: properties.PM_Phone || DATA_CONSTANTS.DEFAULTS.N_A,
           email: properties.PM_EMail,
-          department: properties.ProgramName || 'Unknown',
-          projectTitle: properties.ProjectTitle || 'Untitled Project',
-          projectNumber: properties.ProjectNumber || 'N/A'
+          department: properties.ProgramName || DATA_CONSTANTS.DEFAULTS.UNKNOWN,
+          projectTitle: properties.ProjectTitle || DATA_CONSTANTS.DEFAULTS.UNTITLED_PROJECT,
+          projectNumber: properties.ProjectNumber || DATA_CONSTANTS.DEFAULTS.N_A
         });
       }
     }
@@ -175,11 +169,11 @@ export function exportContactList(spatialResults: SpatialMatch[]): void {
     .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
     .join('\n');
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvContent], { type: EXPORT_CONSTANTS.CSV.MIME_TYPE });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
-  link.setAttribute('download', `project-managers-${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute('download', EXPORT_CONSTANTS.FILENAMES.CONTACT_LIST(getTodayDate()));
   link.style.visibility = 'hidden';
   document.body.appendChild(link);
   link.click();
@@ -196,19 +190,14 @@ export function exportInfrastructureSummary(
   const csvData: string[][] = [];
   
   // Headers
-  csvData.push([
-    'Infrastructure Type',
-    'Subcategory',
-    'Count',
-    'Affected Projects'
-  ]);
+  csvData.push([...EXPORT_CONSTANTS.HEADERS.INFRASTRUCTURE_SUMMARY]);
 
   // Aggregate infrastructure impact
   const infrastructureSummary = new Map();
   
   spatialResults.forEach(match => {
     const { referenceFeature } = match;
-    const projectTitle = referenceFeature.properties?.ProjectTitle || 'Untitled Project';
+    const projectTitle = referenceFeature.properties?.ProjectTitle || DATA_CONSTANTS.DEFAULTS.UNTITLED_PROJECT;
     
     match.targetMatches.forEach(targetMatch => {
       Object.entries(targetMatch.groupedMatches).forEach(([group, count]) => {
@@ -263,11 +252,11 @@ export function exportInfrastructureSummary(
     .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
     .join('\n');
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvContent], { type: EXPORT_CONSTANTS.CSV.MIME_TYPE });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
-  link.setAttribute('download', `infrastructure-impact-${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute('download', EXPORT_CONSTANTS.FILENAMES.INFRASTRUCTURE_SUMMARY(getTodayDate()));
   link.style.visibility = 'hidden';
   document.body.appendChild(link);
   link.click();

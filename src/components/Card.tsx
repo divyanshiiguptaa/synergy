@@ -11,6 +11,30 @@ export interface CardProps {
   minWidth?: string;
 }
 
+const POSITION_CLASSES = {
+  'top-left': 'fixed top-4 left-4',
+  'top-right': 'fixed top-4 right-4',
+  'bottom-left': 'fixed bottom-4 left-4',
+  'bottom-right': 'fixed bottom-4 right-4',
+  'center': 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2',
+};
+
+const VARIANT_CLASSES = {
+  default: 'bg-white shadow-lg border border-gray-200',
+  elevated: 'bg-white shadow-2xl border-0',
+  outlined: 'bg-white shadow-sm border-2 border-gray-300',
+};
+
+const SIZE_CLASSES = {
+  sm: 'p-3',
+  md: 'p-4',
+  lg: 'p-6',
+};
+
+function CardHeader({ children }: { children: React.ReactNode }) {
+  return <div className="flex items-center space-x-2 mb-2">{children}</div>;
+}
+
 function Card({ 
   title, 
   children, 
@@ -21,26 +45,6 @@ function Card({
   maxWidth,
   minWidth
 }: CardProps) {
-  const positionClasses = {
-    'top-left': 'fixed top-4 left-4',
-    'top-right': 'fixed top-4 right-4',
-    'bottom-left': 'fixed bottom-4 left-4',
-    'bottom-right': 'fixed bottom-4 right-4',
-    'center': 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2'
-  };
-
-  const variantClasses = {
-    default: 'bg-white shadow-lg border border-gray-200',
-    elevated: 'bg-white shadow-2xl border-0',
-    outlined: 'bg-white shadow-sm border-2 border-gray-300'
-  };
-
-  const sizeClasses = {
-    sm: 'p-3',
-    md: 'p-4',
-    lg: 'p-6'
-  };
-
   const widthStyles = {
     ...(maxWidth && { maxWidth }),
     ...(minWidth && { minWidth })
@@ -48,14 +52,10 @@ function Card({
 
   return (
     <div 
-      className={`${positionClasses[position]} ${variantClasses[variant]} rounded-lg z-50 ${sizeClasses[size]} ${className}`}
+      className={`${POSITION_CLASSES[position]} ${VARIANT_CLASSES[variant]} rounded-lg z-50 ${SIZE_CLASSES[size]} ${className}`}
       style={widthStyles}
     >
-      {title && (
-        <div className="flex items-center space-x-2 mb-2">
-          {title}
-        </div>
-      )}
+      {title && <CardHeader>{title}</CardHeader>}
       {children}
     </div>
   );

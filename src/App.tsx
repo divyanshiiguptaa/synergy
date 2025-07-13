@@ -13,6 +13,7 @@ import Collapsible from "./components/Collapsible";
 import { Layers } from "lucide-react";
 import React from "react";
 import { getMapboxToken, validateEnvironment } from "./configs/environment";
+import { STATUS_OPTIONS, THEME_CONSTANTS } from "./configs/constants";
 
 
 function App() {
@@ -57,9 +58,9 @@ function App() {
 
   // Theme state
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => {
-    const stored = localStorage.getItem('theme');
-    if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
-    return 'system';
+    const stored = localStorage.getItem(THEME_CONSTANTS.STORAGE_KEY);
+    if (THEME_CONSTANTS.THEMES.includes(stored as any)) return stored as 'light' | 'dark' | 'system';
+    return THEME_CONSTANTS.DEFAULT_THEME;
   });
 
   // Apply theme to document
@@ -79,7 +80,7 @@ function App() {
       }
     }
     applyTheme(theme);
-    localStorage.setItem('theme', theme);
+    localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, theme);
     if (theme === 'system') {
       const listener = (e: MediaQueryListEvent) => {
         if (e.matches) {
@@ -110,8 +111,8 @@ function App() {
     setSelectedMatch(null);
   }, []);
 
-  // Example status options
-  const statusOptions = ["All", "Planned", "In Progress", "Completed", "On Hold"];
+  // Status options from constants
+  const statusOptions = STATUS_OPTIONS;
 
   const clearFilters = useCallback(() => {
     setStatusFilter("All");

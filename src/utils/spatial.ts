@@ -1,4 +1,5 @@
 import * as turf from '@turf/turf';
+import { DATA_CONSTANTS, ERROR_MESSAGES } from '../configs/constants';
 
 export interface TargetMatch {
   targetFeatures: any[];
@@ -52,7 +53,7 @@ export function findSpatialMatches(
             targetMatchesForType.push(targetFeature);
           }
         } catch (error) {
-          console.warn('Spatial analysis error:', error);
+          console.warn(ERROR_MESSAGES.SPATIAL_ANALYSIS, error);
           continue;
         }
       }
@@ -63,7 +64,7 @@ export function findSpatialMatches(
         // Group matches by specified fields
         for (const match of targetMatchesForType) {
           const groupKey = targetConfig.groupByFields
-            .map(field => match.properties?.[field] || 'Unknown')
+            .map(field => match.properties?.[field] || DATA_CONSTANTS.DEFAULTS.UNKNOWN)
             .join(' - ');
           
           groupedMatches[groupKey] = (groupedMatches[groupKey] || 0) + 1;
@@ -109,7 +110,7 @@ export function findSpatialMatches(
  * @param fallback - Fallback value
  * @returns Property value or fallback
  */
-export function getFeatureProperty(feature: any, property: string, fallback: string = 'Unknown'): string {
+export function getFeatureProperty(feature: any, property: string, fallback: string = DATA_CONSTANTS.DEFAULTS.UNKNOWN): string {
   return feature?.properties?.[property] || fallback;
 }
 
@@ -119,14 +120,10 @@ export function getFeatureProperty(feature: any, property: string, fallback: str
  * @returns Formatted date string
  */
 export function formatDate(timestamp: number): string {
-  if (!timestamp) return 'Unknown';
+  if (!timestamp) return DATA_CONSTANTS.DEFAULTS.UNKNOWN;
   
   const date = new Date(timestamp);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+  return date.toLocaleDateString('en-US', DATA_CONSTANTS.DATE_FORMATS.DISPLAY);
 }
 
 /**

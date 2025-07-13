@@ -4,6 +4,7 @@ import { Layers, Info } from 'lucide-react';
 import { loadDatasets } from '../utils/data-loader';
 import { findSpatialMatches, type SpatialMatch } from '../utils/spatial';
 import type { LayerConfig } from '../configs/layerConfig';
+import { MAP_CONSTANTS, COLORS, LAYER_IDS, ERROR_MESSAGES, getClusterRadius, getTargetLayerKey, getMatchLayerKey, getReferenceLayerId, getTargetLayerId, getSourceId } from '../configs/constants';
 import Collapsible from './Collapsible';
 import ErrorIcon from '../icons/error-icon';
 import Card from './Card';
@@ -26,9 +27,9 @@ interface MapComponentProps {
 function MapComponent({ 
   accessToken, 
   layerConfig, 
-  initialLng = -118.2437,
-  initialLat = 34.0522,
-  initialZoom = 10,
+  initialLng = MAP_CONSTANTS.DEFAULT_LNG,
+  initialLat = MAP_CONSTANTS.DEFAULT_LAT,
+  initialZoom = MAP_CONSTANTS.DEFAULT_ZOOM,
   spatialResults,
   selectedMatch,
   onResultsUpdate,
@@ -52,20 +53,20 @@ function MapComponent({
       reference: true
     };
     
-    layerConfig.target.forEach((index) => {
-      initialVisibility[`target-${index}`] = true;
-      initialVisibility[`matches-${index}`] = true;
+    layerConfig.target.forEach((_, index) => {
+      initialVisibility[getTargetLayerKey(index)] = true;
+      initialVisibility[getMatchLayerKey(index)] = true;
     });
     
     setLayerVisibility(initialVisibility);
   }, [layerConfig.target]);
 
-  // 1. Ensure all checkboxes are checked by default
+  // Ensure all checkboxes are checked by default
   useEffect(() => {
     const initialVisibility: Record<string, boolean> = { reference: true };
     layerConfig.target.forEach((_, idx) => {
-      initialVisibility[`target-${idx}`] = true;
-      initialVisibility[`matches-${idx}`] = true;
+      initialVisibility[getTargetLayerKey(idx)] = true;
+      initialVisibility[getMatchLayerKey(idx)] = true;
     });
     setLayerVisibility(initialVisibility);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,7 +96,7 @@ function MapComponent({
       setTargetDatasets(targets);
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      setError(err instanceof Error ? err.message : ERROR_MESSAGES.DATA_LOADING);
       console.error('Error loading data:', err);
     } finally {
       setIsLoading(false);
@@ -118,12 +119,17 @@ function MapComponent({
 
     // Clear existing layers and sources
     const layersToRemove = [
-      'reference-fill', 'reference-fill-matches', 'reference-border'
+      getReferenceLayerId('FILL'), 
+      getReferenceLayerId('FILL_MATCHES'), 
+      getReferenceLayerId('BORDER')
     ];
     
     // Add target layer IDs
     targetDatasets.forEach((_, index) => {
-      layersToRemove.push(`target-points-${index}`, `matched-target-points-${index}`);
+      layersToRemove.push(
+        getTargetLayerId('POINTS', index), 
+        getTargetLayerId('MATCHED_POINTS', index)
+      );
     });
 
     // Remove existing layers
@@ -134,9 +140,12 @@ function MapComponent({
     });
 
     // Remove existing sources
-    const sourcesToRemove = ['reference-data'];
+    const sourcesToRemove = [getSourceId('REFERENCE')];
     targetDatasets.forEach((_, index) => {
-      sourcesToRemove.push(`target-data-${index}`, `matched-target-data-${index}`);
+      sourcesToRemove.push(
+        getSourceId('TARGET', index), 
+        getSourceId('MATCHED_TARGET', index)
+      );
     });
 
     sourcesToRemove.forEach(sourceId => {
@@ -189,8 +198,8 @@ function MapComponent({
       type: 'fill',
       source: 'reference-data',
       paint: {
-        'fill-color': '#FF6B35',
-        'fill-opacity': 0.3
+        'fill-color': COLORS.PRIMARY.ORANGE,
+        'fill-opacity': MAP_CONSTANTS.MATCH_FILL_OPACITY
       },
       filter: ['>', ['get', 'matchCount'], 0]
     });
@@ -209,19 +218,23 @@ function MapComponent({
     targetDatasets.forEach((targetData, index) => {
       const targetConfig = layerConfig.target[index];
       const isPointLayer = targetConfig.geometryType === 'Point';
-      const sourceId = `target-data-${index}`;
+      const sourceId = getSourceId('TARGET', index);
 
       // Add target source with clustering if point layer
       map.current!.addSource(sourceId, {
         type: 'geojson',
         data: targetData,
-        ...(isPointLayer ? { cluster: true, clusterRadius: 50, clusterMaxZoom: 14 } : {})
+        ...(isPointLayer ? { 
+          cluster: true, 
+          clusterRadius: MAP_CONSTANTS.CLUSTER_RADIUS, 
+          clusterMaxZoom: MAP_CONSTANTS.CLUSTER_MAX_ZOOM 
+        } : {})
       });
 
       if (isPointLayer) {
         // Cluster circles
         map.current!.addLayer({
-          id: `target-clusters-${index}`,
+          id: getTargetLayerId('CLUSTERS', index),
           type: 'circle',
           source: sourceId,
           filter: ['has', 'point_count'],
@@ -230,17 +243,17 @@ function MapComponent({
             'circle-radius': [
               'step',
               ['get', 'point_count'],
-              15, 10,
-              20, 50,
-              25, 100,
-              30
+              MAP_CONSTANTS.CLUSTER_SIZES.SMALL, MAP_CONSTANTS.CLUSTER_THRESHOLDS.SMALL,
+              MAP_CONSTANTS.CLUSTER_SIZES.MEDIUM, MAP_CONSTANTS.CLUSTER_THRESHOLDS.MEDIUM,
+              MAP_CONSTANTS.CLUSTER_SIZES.LARGE, MAP_CONSTANTS.CLUSTER_THRESHOLDS.LARGE,
+              MAP_CONSTANTS.CLUSTER_SIZES.EXTRA_LARGE
             ],
-            'circle-opacity': 0.7
+            'circle-opacity': MAP_CONSTANTS.CLUSTER_OPACITY
           }
         });
         // Cluster count labels
         map.current!.addLayer({
-          id: `target-cluster-count-${index}`,
+          id: getTargetLayerId('CLUSTER_COUNT', index),
           type: 'symbol',
           source: sourceId,
           filter: ['has', 'point_count'],
@@ -250,27 +263,27 @@ function MapComponent({
             'text-size': 13
           },
           paint: {
-            'text-color': '#fff',
-            'text-halo-color': '#222',
+            'text-color': COLORS.UI.SURFACE,
+            'text-halo-color': COLORS.UI.TEXT.PRIMARY,
             'text-halo-width': 1.5
           }
         });
         // Unclustered points (only those not in a cluster)
         map.current!.addLayer({
-          id: `target-points-${index}`,
+          id: getTargetLayerId('POINTS', index),
           type: 'circle',
           source: sourceId,
           filter: ['!', ['has', 'point_count']],
           paint: {
-            'circle-radius': targetConfig.size || 6,
+            'circle-radius': targetConfig.size || MAP_CONSTANTS.POINT_SIZE,
             'circle-color': targetConfig.color,
-            'circle-stroke-width': 1,
-            'circle-stroke-color': '#ffffff'
+            'circle-stroke-width': MAP_CONSTANTS.BORDER_WIDTH,
+            'circle-stroke-color': MAP_CONSTANTS.BORDER_COLOR
           }
         });
         // Cluster click to zoom
-        map.current!.on('click', `target-clusters-${index}`, (e) => {
-          const features = map.current!.queryRenderedFeatures(e.point, { layers: [`target-clusters-${index}`] });
+        map.current!.on('click', getTargetLayerId('CLUSTERS', index), (e) => {
+          const features = map.current!.queryRenderedFeatures(e.point, { layers: [getTargetLayerId('CLUSTERS', index)] });
           const clusterId = features[0].properties?.cluster_id;
           // Type guard for Point geometry
           const geom = features[0].geometry;
@@ -281,23 +294,23 @@ function MapComponent({
             });
           }
         });
-        map.current!.on('mouseenter', `target-clusters-${index}`, () => {
+        map.current!.on('mouseenter', getTargetLayerId('CLUSTERS', index), () => {
           map.current!.getCanvas().style.cursor = 'pointer';
         });
-        map.current!.on('mouseleave', `target-clusters-${index}`, () => {
+        map.current!.on('mouseleave', getTargetLayerId('CLUSTERS', index), () => {
           map.current!.getCanvas().style.cursor = '';
         });
       } else {
         // Non-point layers (lines/polygons)
         map.current!.addLayer({
-          id: `target-points-${index}`,
+          id: getTargetLayerId('POINTS', index),
           type: 'circle',
           source: sourceId,
           paint: {
-            'circle-radius': targetConfig.size || 6,
+            'circle-radius': targetConfig.size || MAP_CONSTANTS.POINT_SIZE,
             'circle-color': targetConfig.color,
-            'circle-stroke-width': 1,
-            'circle-stroke-color': '#ffffff'
+            'circle-stroke-width': MAP_CONSTANTS.BORDER_WIDTH,
+            'circle-stroke-color': MAP_CONSTANTS.BORDER_COLOR
           }
         });
       }
@@ -313,27 +326,68 @@ function MapComponent({
           features: matchedTargetFeatures
         };
 
-        map.current!.addSource(`matched-target-data-${index}`, {
+        map.current!.addSource(getSourceId('MATCHED_TARGET', index), {
           type: 'geojson',
           data: matchedTargetData
         });
 
         map.current!.addLayer({
-          id: `matched-target-points-${index}`,
+          id: getTargetLayerId('MATCHED_POINTS', index),
           type: 'circle',
-          source: `matched-target-data-${index}`,
+          source: getSourceId('MATCHED_TARGET', index),
           paint: {
-            'circle-radius': (targetConfig.size || 6) + 2,
-            'circle-color': '#FF6B35',
+            'circle-radius': (targetConfig.size || MAP_CONSTANTS.POINT_SIZE) + 2,
+            'circle-color': COLORS.PRIMARY.ORANGE,
             'circle-stroke-width': 2,
-            'circle-stroke-color': '#ffffff'
+            'circle-stroke-color': MAP_CONSTANTS.BORDER_COLOR
           }
+        });
+
+        // Add click handler for matched target points
+        map.current!.on('click', getTargetLayerId('MATCHED_POINTS', index), (e) => {
+          if (e.features && e.features[0]) {
+            const feature = e.features[0];
+            const geometry = feature.geometry;
+            
+            // Find the project that contains this target point
+            const match = spatialResults.find(match => 
+              match.targetMatches[index]?.targetFeatures.some(targetFeature => 
+                targetFeature.properties?.OBJECTID === feature.properties?.OBJECTID
+              )
+            );
+            
+            if (match) {
+              // Open the popup with project details
+              onMatchSelect(match);
+            }
+            
+            if (geometry && geometry.type === 'Point') {
+              const [lng, lat] = geometry.coordinates;
+              map.current!.flyTo({ 
+                center: [lng, lat], 
+                zoom: 16, 
+                essential: true,
+                duration: 800 
+              });
+            }
+          }
+          setHoverTooltip(null);
+          setHoverDisabled(true);
+        });
+
+        // Add hover effects for matched target points
+        map.current!.on('mouseenter', getTargetLayerId('MATCHED_POINTS', index), () => {
+          map.current!.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.current!.on('mouseleave', getTargetLayerId('MATCHED_POINTS', index), () => {
+          map.current!.getCanvas().style.cursor = '';
         });
       }
     });
 
     // Add click handlers
-    map.current.on('click', 'reference-fill-matches', (e) => {
+    map.current.on('click', getReferenceLayerId('FILL_MATCHES'), (e) => {
       if (e.features && e.features[0]) {
         const feature = e.features[0];
         const match = spatialResults.find(m => 
@@ -348,7 +402,7 @@ function MapComponent({
       setHoverDisabled(true);
     });
 
-    map.current.on('mouseenter', 'reference-fill-matches', (e) => {
+    map.current.on('mouseenter', getReferenceLayerId('FILL_MATCHES'), (e) => {
       if (map.current) {
         map.current.getCanvas().style.cursor = 'pointer';
         if (e.originalEvent && !hoverDisabled) {
@@ -357,13 +411,13 @@ function MapComponent({
       }
     });
 
-    map.current.on('mousemove', 'reference-fill-matches', (e) => {
+    map.current.on('mousemove', getReferenceLayerId('FILL_MATCHES'), (e) => {
       if (e.originalEvent && !hoverDisabled) {
         setHoverTooltip({ x: e.originalEvent.clientX, y: e.originalEvent.clientY });
       }
     });
 
-    map.current.on('mouseleave', 'reference-fill-matches', () => {
+    map.current.on('mouseleave', getReferenceLayerId('FILL_MATCHES'), () => {
       if (map.current) {
         map.current.getCanvas().style.cursor = '';
         setHoverTooltip(null);
@@ -378,7 +432,7 @@ function MapComponent({
     }
   }, [selectedMatch]);
 
-  // 2. Fix toggleLayer to toggle all relevant EV Charger layers
+  // Toggle layer visibility
   const toggleLayer = useCallback((layerType: string) => {
     const newVisibility = { ...layerVisibility, [layerType]: !layerVisibility[layerType] };
     setLayerVisibility(newVisibility);
@@ -386,17 +440,21 @@ function MapComponent({
     if (!map.current) return;
     let layerIds: string[] = [];
     if (layerType === 'reference') {
-      layerIds = ['reference-fill', 'reference-fill-matches', 'reference-border'];
+      layerIds = [
+        getReferenceLayerId('FILL'),
+        getReferenceLayerId('FILL_MATCHES'),
+        getReferenceLayerId('BORDER')
+      ];
     } else if (layerType.startsWith('target-')) {
       const index = parseInt(layerType.split('-')[1]);
       layerIds = [
-        `target-clusters-${index}`,
-        `target-cluster-count-${index}`,
-        `target-points-${index}`
+        getTargetLayerId('CLUSTERS', index),
+        getTargetLayerId('CLUSTER_COUNT', index),
+        getTargetLayerId('POINTS', index)
       ];
     } else if (layerType.startsWith('matches-')) {
       const index = parseInt(layerType.split('-')[1]);
-      layerIds = [`matched-target-points-${index}`];
+      layerIds = [getTargetLayerId('MATCHED_POINTS', index)];
     }
     layerIds.forEach(layerId => {
       if (map.current?.getLayer(layerId)) {
@@ -636,5 +694,5 @@ function MapComponent({
     </div>
   );
 }
-
 export default MapComponent;
+
