@@ -112,6 +112,15 @@ input[type="text"]::placeholder, input[type="search"]::placeholder {
 .dark input::placeholder, .dark textarea::placeholder {
   color: #6b7280 !important;
 }
+
+/* Move this rule to the very bottom for maximum specificity */
+input.searchbar-input {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: inherit !important;
+}
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

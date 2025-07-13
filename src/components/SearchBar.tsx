@@ -22,7 +22,7 @@ export default function SearchBar({ value, onChange, placeholder }: SearchBarPro
         value={value}
         onChange={handleInputChange}
         placeholder={placeholder || 'Search...'}
-        className="bg-transparent outline-none text-sm w-full placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+        className="searchbar-input bg-transparent outline-none text-sm w-full placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
         aria-label={placeholder || 'Search'}
       />
     </div>
