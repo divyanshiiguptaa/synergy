@@ -1,7 +1,6 @@
 export interface ReferenceLayer {
   name: string;
   file: string;
-  geometryType: 'Point' | 'LineString' | 'Polygon';
   filterFields: string[];
   color: string;
   fillColor?: string;
@@ -19,7 +18,6 @@ export interface ReferenceLayer {
 export interface TargetLayer {
   name: string;
   file: string;
-  geometryType: 'Point' | 'LineString' | 'Polygon';
   groupByFields: string[];
   color: string;
   size?: number;
@@ -40,7 +38,6 @@ export const defaultLayerConfig: LayerConfig = {
   reference: {
     name: 'CIP Projects',
     file: DATA_CONSTANTS.PATHS.CIP_PROJECTS,
-    geometryType: 'Polygon',
     filterFields: ['department', 'start_date', 'end_date'],
     color: COLORS.PRIMARY.BLUE,
     fillColor: COLORS.PRIMARY.BLUE,
@@ -57,7 +54,6 @@ export const defaultLayerConfig: LayerConfig = {
   target: [{
     name: 'EV Chargers',
     file: DATA_CONSTANTS.PATHS.EV_CHARGERS,
-    geometryType: 'Point',
     groupByFields: ['type', 'status'],
     color: COLORS.PRIMARY.GREEN,
     size: MAP_CONSTANTS.POINT_SIZE,

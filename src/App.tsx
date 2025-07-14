@@ -13,7 +13,7 @@ import Collapsible from "./components/Collapsible";
 import { Layers } from "lucide-react";
 import React from "react";
 import { getMapboxToken, validateEnvironment } from "./configs/environment";
-import { STATUS_OPTIONS } from "./configs/constants";
+import { MAP_CONSTANTS, STATUS_OPTIONS } from "./configs/constants";
 
 
 function App() {
@@ -26,7 +26,6 @@ function App() {
   const MAPBOX_ACCESS_TOKEN = getMapboxToken();
 
   // Use the default configuration (CIP Projects vs EV Chargers)
-  // To use different configurations, import and use them from example-configs.ts
   const layerConfig = defaultLayerConfig;
 
   // State management lifted up from MapComponent
@@ -149,9 +148,9 @@ function App() {
         <MapComponent 
           accessToken={MAPBOX_ACCESS_TOKEN}
           layerConfig={layerConfig}
-          initialLng={-118.2437}
-          initialLat={34.0522}
-          initialZoom={10}
+          initialLng={MAP_CONSTANTS.DEFAULT_LNG}
+          initialLat={MAP_CONSTANTS.DEFAULT_LAT}
+          initialZoom={MAP_CONSTANTS.DEFAULT_ZOOM}
           spatialResults={spatialResults}
           selectedMatch={selectedMatch}
           onResultsUpdate={handleResultsUpdate}

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import ArrowRightIcon from '../icons/arrow-right-icon';
+import Button from './Button';
 
 export interface CollapsibleProps {
   header: ReactNode;
@@ -15,15 +16,17 @@ interface ToggleButtonProps {
 
 function ToggleButton({ open, onClick, children }: ToggleButtonProps) {
   return (
-    <button
+    <Button
       className="flex items-center w-full focus:outline-none"
       aria-expanded={open}
       onClick={onClick}
       type="button"
+      variant="ghost"
+      size="md"
     >
       {children}
       <ArrowRightIcon className={`w-4 h-4 ml-2 transform transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
-    </button>
+    </Button>
   );
 }
 

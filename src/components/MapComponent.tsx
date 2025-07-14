@@ -217,17 +217,18 @@ function MapComponent({
     // Add target layers
     targetDatasets.forEach((targetData, index) => {
       const targetConfig = layerConfig.target[index];
-      const isPointLayer = targetConfig.geometryType === 'Point';
+      // Infer geometry type from the data (handle empty features array)
+      const geometryTypes = Array.from(new Set((targetData.features || []).map((f: any) => f.geometry?.type)));
+      const isPointLayer = geometryTypes.length === 1 && geometryTypes[0] === 'Point';
       const sourceId = getSourceId('TARGET', index);
 
-      // Add target source with clustering if point layer
       map.current!.addSource(sourceId, {
         type: 'geojson',
         data: targetData,
-        ...(isPointLayer ? { 
-          cluster: true, 
-          clusterRadius: MAP_CONSTANTS.CLUSTER_RADIUS, 
-          clusterMaxZoom: MAP_CONSTANTS.CLUSTER_MAX_ZOOM 
+        ...(isPointLayer ? {
+          cluster: true,
+          clusterRadius: MAP_CONSTANTS.CLUSTER_RADIUS,
+          clusterMaxZoom: MAP_CONSTANTS.CLUSTER_MAX_ZOOM
         } : {})
       });
 
@@ -301,17 +302,33 @@ function MapComponent({
           map.current!.getCanvas().style.cursor = '';
         });
       } else {
-        // Non-point layers (lines/polygons)
+        // For non-point layers (Polygon, MultiPolygon, LineString, etc.)
+        // Render as fill or line as appropriate
         map.current!.addLayer({
           id: getTargetLayerId('POINTS', index),
-          type: 'circle',
+          type: 'fill',
           source: sourceId,
           paint: {
-            'circle-radius': targetConfig.size || MAP_CONSTANTS.POINT_SIZE,
-            'circle-color': targetConfig.color,
-            'circle-stroke-width': MAP_CONSTANTS.BORDER_WIDTH,
-            'circle-stroke-color': MAP_CONSTANTS.BORDER_COLOR
-          }
+            'fill-color': targetConfig.color,
+            'fill-opacity': 0.5
+          },
+          filter: ['any',
+            ['==', ['geometry-type'], 'Polygon'],
+            ['==', ['geometry-type'], 'MultiPolygon']
+          ]
+        });
+        map.current!.addLayer({
+          id: getTargetLayerId('POINTS', index) + '-line',
+          type: 'line',
+          source: sourceId,
+          paint: {
+            'line-color': targetConfig.color,
+            'line-width': 2
+          },
+          filter: ['any',
+            ['==', ['geometry-type'], 'Polygon'],
+            ['==', ['geometry-type'], 'MultiPolygon']
+          ]
         });
       }
 
